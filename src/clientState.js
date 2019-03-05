@@ -1,4 +1,5 @@
 import { NOTE_FRAGMENT } from "./fragments";
+import { GET_NOTES } from "./queries";
 
 export const defaults = {
   notes: [
@@ -40,6 +41,25 @@ export const resolvers = {
       });
       const note = cache.readFragment({ fragment: NOTE_FRAGMENT, id });
       return note;
+    }
+  },
+  Mutation: {
+    createNote: (_, variables, { cache }) => {
+      const { notes } = cache.readQuery({ query: GET_NOTES });
+      const { title, content } = variables;
+      const newNote = {
+        __typename: "Note",
+        title,
+        content,
+        id: notes.length + 1
+      };
+      cache.writeData({
+        // Cache 에 데이터 제공
+        data: {
+          notes: [newNote, ...notes] // 기존의 배열데이터를 그대로 구성해주어야 함 !
+        }
+      });
+      return newNote;
     }
   }
 };

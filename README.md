@@ -208,7 +208,78 @@
    };
    ```
 
+7. test graphQL
+
+   ```query
+   {
+       note(id:1) @client // API 로 넘어가지 않게해줌
+       {
+           id
+           title
+       }
+   }
+   ```
+
+8. add Mutation in resolvers
+
+   ```javascript
+     Mutation: {
+       createNote: (_, variables, { cache }) => {
+         const { notes } = cache.readQuery({ query: GET_NOTES });
+         const { title, content } = variables;
+         const newNote = {
+           __typename: "Note",
+           title,
+           content,
+           id: notes.length + 1
+         };
+         cache.writeData({
+           // Cache 에 데이터 제공
+           data: {
+             notes: [newNote, ...notes] // 기존의 배열데이터를 그대로 구성해주어야 함 !
+           }
+         });
+         return newNote;
+       }
+     }
+   ```
+
+9. create `queries.js`
+
+   ```javascript
+   import gql from "graphql-tag";
    
+   export const GET_NOTES = gql`
+     {
+       notes @client {
+         id
+         title
+         content
+       }
+     }
+   `;
+   
+   ```
+
+10. test mutation (createNote)
+
+    ```mysql
+    mutation {
+        createNote(title: "제목", content: "내용") {
+            id
+        }
+    }
+    
+    {
+      notes @client {
+        id
+        title
+        content
+      }
+    }
+    ```
+
+    
 
 
 
